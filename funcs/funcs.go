@@ -21,7 +21,7 @@ func BuildMappers() {
 				CpuMetrics,
 				MemMetrics,
 				PingMetrics,
-				CustMetrics,
+				//CustMetrics,
 			},
 			Interval: interval,
 		},

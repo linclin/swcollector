@@ -10,7 +10,7 @@ import (
 	go_snmp "github.com/gaochao1/gosnmp"
 	"github.com/gaochao1/sw"
 	"github.com/gaochao1/swcollector/g"
-	"github.com/open-falcon/common/model"
+	//"github.com/open-falcon/common/model"
 )
 
 type CustM struct {
@@ -45,43 +45,43 @@ func AllCustmIp(ipRange []string) (allIp []string) {
 	return allIp
 }
 
-func CustMetrics() (L []*model.MetricValue) {
-	if !g.Config().CustomMetrics.Enabled {
-		return
-	}
-	chs := make([]chan CustM, 0)
-	for _, ip := range AliveIp {
-		if ip != "" {
-			for _, metric := range g.CustConfig().Metrics {
-				CustmIps := AllCustmIp(metric.IpRange)
-				if InArray(ip, CustmIps) {
-					chss := make(chan CustM)
-					go custMetrics(ip, metric, chss)
-					chs = append(chs, chss)
-				}
-			}
-
-		}
-	}
-	for _, ch := range chs {
-		custm, ok := <-ch
-		if !ok {
-			continue
-		}
-		for _, custmmetric := range custm.custmMetrics {
-			if custmmetric.metrictype == "GAUGE" {
-				L = append(L, GaugeValueIp(time.Now().Unix(), custm.Ip, custmmetric.metric, custmmetric.value, custmmetric.tag))
-			}
-			if custmmetric.metrictype == "COUNTER" {
-				L = append(L, CounterValueIp(time.Now().Unix(), custm.Ip, custmmetric.metric, custmmetric.value, custmmetric.tag))
-			}
-
-		}
-
-	}
-
-	return L
-}
+//func CustMetrics() (L []*model.MetricValue) {
+//	if !g.Config().CustomMetrics.Enabled {
+//		return
+//	}
+//	chs := make([]chan CustM, 0)
+//	for _, ip := range AliveIp {
+//		if ip != "" {
+//			for _, metric := range g.CustConfig().Metrics {
+//				CustmIps := AllCustmIp(metric.IpRange)
+//				if InArray(ip, CustmIps) {
+//					chss := make(chan CustM)
+//					go custMetrics(ip, metric, chss)
+//					chs = append(chs, chss)
+//				}
+//			}
+//
+//		}
+//	}
+//	for _, ch := range chs {
+//		custm, ok := <-ch
+//		if !ok {
+//			continue
+//		}
+//		for _, custmmetric := range custm.custmMetrics {
+//			if custmmetric.metrictype == "GAUGE" {
+//				L = append(L, GaugeValueIp(time.Now().Unix(), custm.Ip, custmmetric.metric, custmmetric.value, custmmetric.tag))
+//			}
+//			if custmmetric.metrictype == "COUNTER" {
+//				L = append(L, CounterValueIp(time.Now().Unix(), custm.Ip, custmmetric.metric, custmmetric.value, custmmetric.tag))
+//			}
+//
+//		}
+//
+//	}
+//
+//	return L
+//}
 
 func custMetrics(ip string, metric *g.MetricConfig, ch chan CustM) {
 	var custm CustM

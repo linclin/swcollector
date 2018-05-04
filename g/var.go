@@ -1,17 +1,15 @@
 package g
 
 import (
+	"github.com/open-falcon/common/model"
+	"github.com/toolkits/net"
+	"github.com/toolkits/slice"
 	"log"
 	"os"
 	"strings"
 	"sync"
-
-	"github.com/toolkits/slice"
-
 	"time"
-
-	"github.com/open-falcon/common/model"
-	"github.com/toolkits/net"
+	"bytes"
 )
 
 var Root string
@@ -35,10 +33,18 @@ func InitLocalIps() {
 }
 
 var (
+	HbsClient      *SingleConnRpcClient
 	TransferClient *SingleConnRpcClient
 )
 
 func InitRpcClients() {
+	if Config().Heartbeat.Enabled {
+		HbsClient = &SingleConnRpcClient{
+			RpcServer: Config().Heartbeat.Addr,
+			Timeout:   time.Duration(Config().Heartbeat.Timeout) * time.Millisecond,
+		}
+	}
+
 	if Config().Transfer.Enabled {
 		TransferClient = &SingleConnRpcClient{
 			RpcServer: Config().Transfer.Addr,
@@ -52,69 +58,83 @@ func SendToTransfer(metrics []*model.MetricValue) {
 		return
 	}
 
-	debug := Config().Debug
-	debug_endpoints := Config().Debugmetric.Endpoints
-	debug_metrics := Config().Debugmetric.Metrics
-	debug_tags := Config().Debugmetric.Tags
-	debug_Tags := strings.Split(debug_tags, ",")
+	dt := Config().DefaultTags
+	if len(dt) > 0 {
+		var buf bytes.Buffer
+		default_tags_list := []string{}
+		for k, v := range dt {
+			buf.Reset()
+			buf.WriteString(k)
+			buf.WriteString("=")
+			buf.WriteString(v)
+			default_tags_list = append(default_tags_list, buf.String())
+		}
+		default_tags := strings.Join(default_tags_list, ",")
 
-	if Config().SwitchHosts.Enabled {
-		hosts := HostConfig().Hosts
-		for i, metric := range metrics {
-			if hostname, ok := hosts[metric.Endpoint]; ok {
-				metrics[i].Endpoint = hostname
+		for i, x := range metrics {
+			buf.Reset()
+			if x.Tags == "" {
+				metrics[i].Tags = default_tags
+			} else {
+				buf.WriteString(metrics[i].Tags)
+				buf.WriteString(",")
+				buf.WriteString(default_tags)
+				metrics[i].Tags = buf.String()
 			}
 		}
 	}
+
+	debug := Config().Debug
 
 	if debug {
-		for _, metric := range metrics {
-			metric_tags := strings.Split(metric.Tags, ",")
-			if in_array(metric.Endpoint, debug_endpoints) && in_array(metric.Metric, debug_metrics) {
-				if debug_tags == "" {
-					log.Printf("=> <Total=%d> %v\n", len(metrics), metric)
-					continue
-				}
-				if array_include(debug_Tags, metric_tags) {
-					log.Printf("=> <Total=%d> %v\n", len(metrics), metric)
-				}
-			}
-		}
+		log.Printf("=> <Total=%d> %v\n", len(metrics), metrics[0])
 	}
+
 	var resp model.TransferResponse
-	err := TransferClient.Call("Transfer.Update", metrics, &resp)
-	if err != nil {
-		log.Println("call Transfer.Update fail", err)
-		if debug {
-			for _, metric := range metrics {
-				log.Printf("=> <Total=%d> %v\n", len(metrics), metric)
-			}
-		}
-	}
+	SendMetrics(metrics, &resp)
 
 	if debug {
 		log.Println("<=", &resp)
 	}
 }
 
-func array_include(array_a []string, array_b []string) bool { //b include a
-	for _, v := range array_a {
-		if in_array(v, array_b) {
-			continue
-		} else {
-			return false
-		}
-	}
-	return true
+
+
+var (
+	reportPorts     []int64
+	reportPortsLock = new(sync.RWMutex)
+)
+
+func ReportPorts() []int64 {
+	reportPortsLock.RLock()
+	defer reportPortsLock.RUnlock()
+	return reportPorts
 }
 
-func in_array(a string, array []string) bool {
-	for _, v := range array {
-		if a == v {
-			return true
-		}
-	}
-	return false
+func SetReportPorts(ports []int64) {
+	reportPortsLock.Lock()
+	defer reportPortsLock.Unlock()
+	reportPorts = ports
+}
+
+var (
+	// tags => {1=>name, 2=>cmdline}
+	// e.g. 'name=falcon-agent'=>{1=>falcon-agent}
+	// e.g. 'cmdline=xx'=>{2=>xx}
+	reportProcs     map[string]map[int]string
+	reportProcsLock = new(sync.RWMutex)
+)
+
+func ReportProcs() map[string]map[int]string {
+	reportProcsLock.RLock()
+	defer reportProcsLock.RUnlock()
+	return reportProcs
+}
+
+func SetReportProcs(procs map[string]map[int]string) {
+	reportProcsLock.Lock()
+	defer reportProcsLock.Unlock()
+	reportProcs = procs
 }
 
 var (
@@ -125,8 +145,14 @@ var (
 func TrustableIps() []string {
 	ipsLock.Lock()
 	defer ipsLock.Unlock()
-	ips := Config().Http.TrustIps
 	return ips
+}
+
+func SetTrustableIps(ipStr string) {
+	arr := strings.Split(ipStr, ",")
+	ipsLock.Lock()
+	defer ipsLock.Unlock()
+	ips = arr
 }
 
 func IsTrustable(remoteAddr string) bool {
