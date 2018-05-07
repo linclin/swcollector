@@ -1,60 +1,65 @@
 {
-	"debug": true,
+    "debug": false,
+	"debugmetric":{
+		"endpoints":["vpn-lw"],
+		"metrics":["AnyconnectSession","ConnectionStat"],
+		"tags":""
+	},
 	"switch":{
-		"enabled": true,
-		"ipRange":["127.0.0.0/24"],
-		"pingTimeout":300,
-		"pingRetry":4,
-		"community":"",
-		"snmpTimeout":1000,
-		"snmpRetry":5,
-		"password":"",
+		"password":"&ITiL",
 		"user":"",
 		"port":"22",
-		"ignoreIface": ["Nu","NU","Vlan","Vl"],
-		"ignorePkt": true,
-		"ignoreBroadcastPkt": true,
-		"ignoreMulticastPkt": true,
+		"searchNet":"",
 		"displayByBit": true,
+	   "enabled": true,
+		"ipRange":[
+            "10.10.88.168"      
+ 		],
+		"gosnmp":true,
+ 		"pingTimeout":300,
+		"pingRetry":4,
+		"community":"123456",
+		"snmpTimeout":1000,
+		"snmpRetry":5,
+		"ignoreIface": ["Nu","NU","Vlan","Vl"],
+		"ignoreOperStatus": true,
+		"speedlimit":0,
+		"ignorePkt": true,
+		"pktlimit": 0,
+		"ignoreBroadcastPkt": true,
+		"broadcastPktlimit": 0,
+		"ignoreMulticastPkt": true,
+		"multicastPktlimit": 0,
+		"ignoreDiscards": true,
+		"discardsPktlimit": 0,
+		"ignoreErrors": true,
+		"errorsPktlimit": 0,
+		"ignoreUnknownProtos":true,
+		"unknownProtosPktlimit": 0,
+		"ignoreOutQLen":true,
+		"outQLenPktlimit": 0,
 		"fastPingMode": true,
-		"limitConcur": 1000
-	},
-	"cmdb":"http://192.168.148.138:8080/api/v3/host/add/agent",
-	"heartbeat": {
-		"enabled": true,
-		"addr": "172.16.21.15:6030",
-		"interval": 60,
-		"timeout": 1000
-	},
-	"user": "",
-	"password": "",
+		"limitConcur": 1000,
+		"limitCon": 4
+ 	},
 	"community": "",
-	"default_tags": {
+	"switchhosts":{
+		"enabled":false,
+		"hosts":"./hosts.json"
 	},
-	"transfer": {
-		"enabled": true,
-		"addr": "127.0.0.1:8433",
-		"interval": 120,
-		"timeout": 1000
+	"customMetrics":{
+		"enabled":false,
+		"template":"./custom.json"
 	},
-	"http": {
-		"enabled": false,
-		"listen": ":9999"
-	},
-	"cmdb": {
-		"host": "",
-		"user": "",
-		"password": "",
-		"port": "3306",
-		"dbname": "cmdb"
-	},
-	"uwork": {
-		"host": "",
-		"user": "",
-		"password": "",
-		"port": "3306",
-		"dbname": "wf_workflow"
-	},
-	"backupdir": "/data/swConfig"
+    "transfer": {
+        "enabled": true,
+        "addr": "127.0.0.1:8433",
+        "interval": 300,
+        "timeout": 1000
+    },
+    "http": {
+        "enabled": false,
+        "listen": ":1989",
+		"trustIps":["192.168.0.1","192.168.0.2"]
+    }
 }
-

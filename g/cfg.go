@@ -15,9 +15,9 @@ type DebugmetricConfig struct {
 }
 
 type SwitchConfig struct {
-	Enabled  bool     `json:"enabled"`
-	IpRange  []string `json:"ipRange"`
-	Interval int      `json:"interval"`
+	Enabled bool     `json:"enabled"`
+	IpRange []string `json:"ipRange"`
+	Gosnmp  bool     `json:"gosnmp"`
 
 	PingTimeout int `json:"pingTimeout"`
 	PingRetry   int `json:"pingRetry"`
@@ -26,56 +26,35 @@ type SwitchConfig struct {
 	SnmpTimeout int    `json:"snmpTimeout"`
 	SnmpRetry   int    `json:"snmpRetry"`
 
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Port     string `json:"port"`
-
-	IgnoreIface        []string `json:"ignoreIface"`
-	IgnorePkt          bool     `json:"ignorePkt"`
-	IgnoreOperStatus   bool     `json:"ignoreOperStatus"`
-	IgnoreBroadcastPkt bool     `json:"ignoreBroadcastPkt"`
-	IgnoreMulticastPkt bool     `json:"ignoreMulticastPkt"`
-	DisplayByBit       bool     `json:"displayByBit"`
-	LimitConcur        int      `json:"limitConcur"`
-	FastPingMode       bool     `json:"fastPingMode"`
+	User        string `json:"user"`
+	Password    string `json:"password"`
+	Port        string `json:"port"`
+	SearchNet   string `json:"searchNet"`
+	IgnoreIface           []string `json:"ignoreIface"`
+	IgnoreOperStatus      bool     `json:"ignoreOperStatus"`
+	Speedlimit            float64  `json:"speedlimit"`
+	IgnorePkt             bool     `json:"ignorePkt"`
+	Pktlimit              float64  `json:"pktlimit"`
+	IgnoreBroadcastPkt    bool     `json:"ignoreBroadcastPkt"`
+	BroadcastPktlimit     float64  `josn:"broadcastPktlimit"`
+	IgnoreMulticastPkt    bool     `json:"ignoreMulticastPkt"`
+	MulticastPktlimit     float64  `json:"multicastPktlimit"`
+	IgnoreDiscards        bool     `json:"ignoreDiscards"`
+	DiscardsPktlimit      float64  `json:"discardsPktlimit"`
+	IgnoreErrors          bool     `json:"ignoreErrors"`
+	ErrorsPktlimit        float64  `json:"errorsPktlimit"`
+	IgnoreUnknownProtos   bool     `json:"ignoreUnknownProtos`
+	UnknownProtosPktlimit float64  `json:"unknownProtosPktlimit"`
+	IgnoreOutQLen         bool     `json:"ignoreOutQLen`
+	OutQLenPktlimit       float64  `json:"outQLenPktlimit"`
+	LimitCon              int      `json:limitCon`
+	LimitConcur           int      `json:"limitConcur"`
+	FastPingMode          bool     `json:"fastPingMode"`
 }
-
-type CMDBConfig struct {
-	Host     string `json:"host"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Port     string `json:"port"`
-	DB       string `json:"dbname"`
-}
-
-type UworkConfig struct {
-	Host     string `json:"host"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Port     string `json:"port"`
-	DB       string `json:"dbname"`
-}
-
-type FalconConfig struct {
-	Host     string `json:"host"`
-	User     string `json:"user"`
-	Password string `json:"password"`
-	Port     string `json:"port"`
-	DB       string `json:"dbname"`
-}
-
-
-type HeartbeatConfig struct {
-	Enabled  bool   `json:"enabled"`
-	Addr     string `json:"addr"`
-	Interval int    `json:"interval"`
-	Timeout  int    `json:"timeout"`
-}
-
 
 type TransferConfig struct {
 	Enabled  bool   `json:"enabled"`
-	Addr    string `json:"addr"`
+	Addr     string `json:"addr"`
 	Interval int    `json:"interval"`
 	Timeout  int    `json:"timeout"`
 }
@@ -97,23 +76,17 @@ type CustomMetricsConfig struct {
 }
 
 type GlobalConfig struct {
-	Debug     bool             `json:"debug"`
-	IP        string           `json:"ip"`
-	Hostname  string           `json:"hostname"`
-	User      string           `json:"user"`
-	Password  string           `json:"password"`
+	Debug         bool                 `json:"debug"`
+	Debugmetric   *DebugmetricConfig   `json:"debugmetric`
+	Switch        *SwitchConfig        `json:"switch"`
+	Transfer      *TransferConfig      `json:"transfer"`
+	SwitchHosts   *SwitchHostsConfig   `json:switchhosts`
+	CustomMetrics *CustomMetricsConfig `json:customMetrics`
+	Http          *HttpConfig          `json:"http"`
+	Cmdb          string      `json:"cmdb"`
 	Community string           `json:"community"`
-	Switch    *SwitchConfig    `json:"switch"`
-	Cmdb            string      `json:"cmdb"`
-	Heartbeat *HeartbeatConfig `json:"heartbeat"`
-	Transfer  *TransferConfig  `json:"transfer"`
-	Http      *HttpConfig      `json:"http"`
-	CMDB      *CMDBConfig      `json:"cmdb"`
-	Uwork     *UworkConfig     `json:"uwork"`
-	Falcon    *FalconConfig    `json:"falcon"`
-	DefaultTags   map[string]string `json:"default_tags"`
-	BackupDir string           `json:"backupdir"`
 }
+
 
 
 var (

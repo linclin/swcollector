@@ -125,7 +125,7 @@ func GetSSN(ip string) (hdinfo map[string]string, Manufacturer string) {
 	password := g.Config().Switch.Password
 	ip_port := fmt.Sprintf("%s:%s", ip, g.Config().Switch.Port)
 
-	sysDescr, _ := sw.SysDescr(ip, g.Config().Switch.Community, 15)
+	sysDescr, _ := sw.SysDescr(ip, g.Config().Switch.Community, 15,3000)
 	sysDescrLower := strings.ToLower(sysDescr)
 
 	if strings.Contains(sysDescrLower, "cisco") {

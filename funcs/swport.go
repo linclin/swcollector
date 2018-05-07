@@ -7,64 +7,13 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/astaxie/beego/orm"
 	"github.com/gaochao1/swcollector/g"
-	"github.com/gaochao1/swcollector/models"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 type PortInfo struct {
 	Ip   string
 	port map[string]string
-}
-
-func UpdatePortInfo() {
-	log.Println("Updating CMDB")
-
-	o := orm.NewOrm()
-	o.Using("default")
-
-	portData := SwPort()
-
-	log.Println(portData)
-
-	for _, portInfo := range portData {
-		go updatePortInfo(portInfo, o)
-	}
-}
-
-func updatePortInfo(portInfo PortInfo, o orm.Ormer) {
-	var server []orm.Params
-
-	//log.Println("Starting update portinfo")
-
-	num, err := o.Raw(fmt.Sprintf("SELECT Id FROM netdevice WHERE ManagementIp = '%s'", portInfo.Ip)).Values(&server)
-
-	if err != nil {
-		log.Println("Search ", portInfo.Ip, " from mysql failed")
-		return
-	}
-
-	if num != 1 {
-		log.Println("Update infomation from ", portInfo.Ip, " failed,can not find the only ManagementIp.")
-		return
-	}
-
-	netdeviceId := GetInt(server[0]["Id"])
-	//log.Println(netdeviceId)
-
-	for ip, port := range portInfo.port {
-		line := models.NetdevicePort{NetdeviceId: netdeviceId, PortName: port, BindIp: ip}
-		if create, _, line_err := o.ReadOrCreate(&line, "NetdeviceId", "PortName", "BindIp"); line_err == nil {
-			if create {
-				log.Println("Update successed:", netdeviceId, port, ip)
-			} else {
-				log.Println("Alreadly existed:", netdeviceId, port, ip)
-			}
-		} else {
-			log.Println("Update failed:", netdeviceId, port, ip, line_err.Error())
-		}
-	}
 }
 
 func SwPort() (L []PortInfo) {
