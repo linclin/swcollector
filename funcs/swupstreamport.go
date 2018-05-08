@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"github.com/astaxie/beego/orm"
 	"github.com/gaochao1/sw"
 	"github.com/gaochao1/swcollector/g"
 	_ "github.com/go-sql-driver/mysql"
@@ -54,8 +53,6 @@ var  AllSwPortInfo  []SwPortInfo
 //交换机基础信息采集上报
 func UpdateSwUpstreamPort() {
 	log.Println("Updating SSN")
-	o := orm.NewOrm()
-	o.Using("default")
 
 	//更新硬件信息
 	swHdinfo := SwSSNMetrics()
@@ -82,7 +79,6 @@ func updateUpstreamPortInfo(portInfo PortInfo) {
 	sysDescrLower := strings.ToLower(sysDescr)
 
 
-
 	if strings.Contains(sysDescrLower, "cisco") {
 		info := SSHCommand(user, password, ip_port, "sho ip arp | include "+g.Config().Switch.SearchNet)
 		data := strings.Split(info, "\n")
@@ -107,11 +103,13 @@ func updateUpstreamPortInfo(portInfo PortInfo) {
 		data := strings.Split(info, "\n")
 		log.Println("length of data is ", len(data))
 		for _, in := range data {
-			if strings.Contains(in, g.Config().Switch.SearchNet) {
+			if strings.Contains(in, g.Config().Switch.SearchNet+".") {
 				//log.Println("detail: index ", i, "data:", in, "port id is ", portInfo.Ip)
 				data2 := strings.Split(in, " ")
 				//ip : data2[0] mac_add :data2[3]  port_name :data2[12]
 				if len(data2) > 1 {
+					log.Println(len(data2))
+
 					mac_add := data2[3]
 					port_name := data2[12]
 					if data[3] == "" {
