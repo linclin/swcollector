@@ -84,6 +84,7 @@ type GlobalConfig struct {
 	CustomMetrics *CustomMetricsConfig `json:customMetrics`
 	Http          *HttpConfig          `json:"http"`
 	Cmdb          string      `json:"cmdb"`
+	DefaultTags   map[string]string `json:"default_tags"`
 	Community string           `json:"community"`
 }
 

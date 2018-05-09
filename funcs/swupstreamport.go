@@ -28,19 +28,16 @@ type AdsHostInfoRequest struct {
 //ADS:auto discovery system
 type AdsReportRequest struct {
 	AgentVersion string `json:"bk_agent_version,omitempty"` //厂商 Agent版本
-	Hostname     string `json:"bk_host_name,omitempty"`     //主机名称
 	SN           string `json:"bk_sn,omitempty"`            //主机sn
 	Manufacturer string `json:"bk_manufacturer,omitempty"`  //厂商
 	ProductName  string `json:"bk_productName,omitempty"`   //型号
-	LanIP        string `json:"bk_host_innerip,omitempty"`  //内网IP地址
-	WanIP        string `json:"bk_host_outerip,omitempty"`  //外网IP地址
 
 	HostManageIp  string `json:"bk_host_manageip,omitempty"`  //带外IP
 	UpdateTime string `json:"bk_agent_update_time,omitempty"` //更新时间
 	ImportFrom string `json:"import_from,omitempty"` //录入方式
 	HostType string `json:"bk_host_type,omitempty"` //主机类型
-
 }
+
 type AdsReportRes struct {
 	Result           bool `json:"result,omitempty"`
 	BkErrorCode           int `json:"bk_error_code,omitempty"`
@@ -65,7 +62,6 @@ func UpdateSwUpstreamPort() {
 	for _, portInfo := range portData {
 		go updateUpstreamPortInfo(portInfo)
 	}
-
 }
 
 //更新端口信息
@@ -109,7 +105,6 @@ func updateUpstreamPortInfo(portInfo PortInfo) {
 				//ip : data2[0] mac_add :data2[3]  port_name :data2[12]
 				if len(data2) > 1 {
 					log.Println(len(data2))
-
 					mac_add := data2[3]
 					port_name := data2[12]
 					if data[3] == "" {
@@ -133,23 +128,23 @@ func updateUpstreamPortInfo(portInfo PortInfo) {
 }
 
 
-
 func GetAdsInfo(swHdinfo []SwSSN) string {
 	for _,ss :=range swHdinfo{
-		req := AdsReportRequest{}
-		req.AgentVersion=g.VERSION
-		req.ImportFrom ="2" //上报方式
-		req.UpdateTime = time.Now().Format("2006-01-02 15:04:05")
-		req.SN = ss.SSN
-		req.Manufacturer= ss.Manufacturer
-		req.ProductName=ss.Model
-		req.HostType ="5"
-		req.HostManageIp = ss.Ip
-		metricValue,_:=reportAdsToCmdb(req)
-		mvs := []*model.MetricValue{}
-		mvs=append(mvs,&metricValue)
-		g.SendToTransfer(mvs)
-		return ""
+		if ss.SSN!=""{
+			req := AdsReportRequest{}
+			req.AgentVersion=g.VERSION
+			req.ImportFrom ="2" //上报方式
+			req.UpdateTime = time.Now().Format("2006-01-02 15:04:05")
+			req.SN = ss.SSN
+			req.Manufacturer= ss.Manufacturer
+			req.ProductName=ss.Model
+			req.HostType ="5"
+			req.HostManageIp = ss.Ip
+			metricValue,_:=reportAdsToCmdb(req)
+			mvs := []*model.MetricValue{}
+			mvs=append(mvs,&metricValue)
+			g.SendToTransfer(mvs)
+		}
 	}
 
 	return ""

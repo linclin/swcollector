@@ -12,6 +12,7 @@ import (
 
 	"github.com/open-falcon/common/model"
 	"github.com/toolkits/net"
+	"bytes"
 )
 
 var Root string
@@ -52,45 +53,40 @@ func SendToTransfer(metrics []*model.MetricValue) {
 		return
 	}
 
-	debug := Config().Debug
-	debug_endpoints := Config().Debugmetric.Endpoints
-	debug_metrics := Config().Debugmetric.Metrics
-	debug_tags := Config().Debugmetric.Tags
-	debug_Tags := strings.Split(debug_tags, ",")
+	dt := Config().DefaultTags
+	if len(dt) > 0 {
+		var buf bytes.Buffer
+		default_tags_list := []string{}
+		for k, v := range dt {
+			buf.Reset()
+			buf.WriteString(k)
+			buf.WriteString("=")
+			buf.WriteString(v)
+			default_tags_list = append(default_tags_list, buf.String())
+		}
+		default_tags := strings.Join(default_tags_list, ",")
 
-	if Config().SwitchHosts.Enabled {
-		hosts := HostConfig().Hosts
-		for i, metric := range metrics {
-			if hostname, ok := hosts[metric.Endpoint]; ok {
-				metrics[i].Endpoint = hostname
+		for i, x := range metrics {
+			buf.Reset()
+			if x.Tags == "" {
+				metrics[i].Tags = default_tags
+			} else {
+				buf.WriteString(metrics[i].Tags)
+				buf.WriteString(",")
+				buf.WriteString(default_tags)
+				metrics[i].Tags = buf.String()
 			}
 		}
 	}
+
+	debug := Config().Debug
 
 	if debug {
-		for _, metric := range metrics {
-			metric_tags := strings.Split(metric.Tags, ",")
-			if in_array(metric.Endpoint, debug_endpoints) && in_array(metric.Metric, debug_metrics) {
-				if debug_tags == "" {
-					log.Printf("=> <Total=%d> %v\n", len(metrics), metric)
-					continue
-				}
-				if array_include(debug_Tags, metric_tags) {
-					log.Printf("=> <Total=%d> %v\n", len(metrics), metric)
-				}
-			}
-		}
+		log.Printf("=> <Total=%d> %v\n", len(metrics), metrics[0])
 	}
+
 	var resp model.TransferResponse
-	err := TransferClient.Call("Transfer.Update", metrics, &resp)
-	if err != nil {
-		log.Println("call Transfer.Update fail", err)
-		if debug {
-			for _, metric := range metrics {
-				log.Printf("=> <Total=%d> %v\n", len(metrics), metric)
-			}
-		}
-	}
+	SendMetrics(metrics, &resp)
 
 	if debug {
 		log.Println("<=", &resp)

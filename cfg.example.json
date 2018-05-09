@@ -44,6 +44,8 @@
 		"limitCon": 4
  	},
 	"community": "",
+	"default_tags": {
+	},
 	"switchhosts":{
 		"enabled":false,
 		"hosts":"./hosts.json"
