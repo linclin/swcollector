@@ -101,55 +101,47 @@ func SwCollector(ip string, ch chan SwInfo) {
 		ch <- swSystem
 		return
 	} else {
-		_, err := sw.SysUpTime(ip, g.Config().Switch.Community, g.Config().Switch.SnmpTimeout)
+		swModel, err := sw.SysModel(ip, g.Config().Switch.Community, g.Config().Switch.SnmpRetry, g.Config().Switch.SnmpTimeout)
 		if err != nil {
 			log.Println(err)
-			ch <- swSystem
-			return
 		} else {
-			swModel, err := sw.SysModel(ip, g.Config().Switch.Community, g.Config().Switch.SnmpRetry, g.Config().Switch.SnmpTimeout)
-			if err != nil {
-				log.Println(err)
-			} else {
-				swSystem.Model = swModel
-			}
+			swSystem.Model = swModel
+		}
 
-			swName, err := sw.SysName(ip, g.Config().Switch.Community, g.Config().Switch.SnmpTimeout)
-			if err != nil {
-				log.Println(err)
-			} else {
-				swSystem.HostName = swName
-			}
+		swName, err := sw.SysName(ip, g.Config().Switch.Community, g.Config().Switch.SnmpTimeout)
+		if err != nil {
+			log.Println(err)
+		} else {
+			swSystem.HostName = swName
+		}
 
-			sysDescr, err := sw.SysDescr(ip, g.Config().Switch.Community, g.Config().Switch.SnmpRetry, g.Config().Switch.SnmpTimeout)
-			if err != nil {
-				log.Println(err)
-			} else {
-				info:=strings.Split(sysDescr,",")
-				for _,i := range info {
-					if strings.Contains(i,"Version") {
-						if  strings.Split(i," ")[1] == "Software"{
-							swSystem.Version = strings.Split(i," ")[3]
-						}else{
-							swSystem.Version = strings.Split(i," ")[2]
-						}
+		sysDescr, err := sw.SysDescr(ip, g.Config().Switch.Community, g.Config().Switch.SnmpRetry, g.Config().Switch.SnmpTimeout)
+		if err != nil {
+			log.Println(err)
+		} else {
+			info:=strings.Split(sysDescr,",")
+			for _,i := range info {
+				if strings.Contains(i,"Version") {
+					if  strings.Split(i," ")[1] == "Software"{
+						swSystem.Version = strings.Split(i," ")[3]
+					}else{
+						swSystem.Version = strings.Split(i," ")[2]
 					}
 				}
 			}
+		}
 
-			vendor, err := sw.SysVendor(ip, g.Config().Switch.Community,  g.Config().Switch.SnmpRetry, g.Config().Switch.SnmpTimeout)
-			if err != nil {
-				log.Println(err)
-			} else {
-				swSystem.Vendor = vendor
-			}
+		vendor, err := sw.SysVendor(ip, g.Config().Switch.Community,  g.Config().Switch.SnmpRetry, g.Config().Switch.SnmpTimeout)
+		if err != nil {
+			log.Println(err)
+		} else {
+			swSystem.Vendor = vendor
 		}
 	}
 
 	ch <- swSystem
 	return
 }
-
 
 func GetAdsInfo(swDetailInfo []SwInfo) string {
 	for _,ss :=range swDetailInfo{
